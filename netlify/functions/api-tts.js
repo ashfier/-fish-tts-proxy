@@ -1,4 +1,3 @@
-javascript
 export default async function handler(event, context) {
   const text = new URL(event.rawUrl).searchParams.get('text');
 

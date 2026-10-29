@@ -1,9 +1,7 @@
 export default async function onRequest(context) {
   const { request, env } = context;
-  const url = new URL(request.url);
-  const text = url.searchParams.get("text");
 
-  // 处理跨域（CORS）预检请求
+  // 1. 处理跨域预检请求（CORS）
   if (request.method === "OPTIONS") {
     return new Response(null, {
       headers: {
@@ -14,6 +12,10 @@ export default async function onRequest(context) {
     });
   }
 
+  // 2. 解析前端传来的 text 参数
+  const url = new URL(request.url);
+  const text = url.searchParams.get("text");
+
   if (!text) {
     return new Response("Missing text parameter", { 
       status: 400,
@@ -21,15 +23,20 @@ export default async function onRequest(context) {
     });
   }
 
+  // 3. 读取环境变量
   const API_KEY = env.FISH_API_KEY;
   const REFERENCE_ID = env.FISH_REFERENCE_ID;
 
   if (!API_KEY || !REFERENCE_ID) {
-    return new Response("Missing Environment Variables", { status: 500 });
+    return new Response("Missing Environment Variables", { 
+      status: 500,
+      headers: { "Access-Control-Allow-Origin": "*" }
+    });
   }
 
   try {
-    const response = await fetch("https://api.fish.audio/v1/tts", {
+    // 4. 请求 Fish Audio 接口 (已替换为 fishaudio.org 域名)
+    const response = await fetch("https://api.fishaudio.org/v1/tts", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${API_KEY}`,
@@ -50,6 +57,7 @@ export default async function onRequest(context) {
       });
     }
 
+    // 5. 返回音频流
     return new Response(response.body, {
       headers: {
         "Content-Type": "audio/mpeg",
@@ -64,3 +72,6 @@ export default async function onRequest(context) {
     });
   }
 }
+
+// EdgeOne 专用兼容写法
+export const onRequestFetch = onRequest;

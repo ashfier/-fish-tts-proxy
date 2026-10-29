@@ -1,7 +1,5 @@
-```json
 {
   "name": "fish-tts-proxy",
   "private": true,
   "type": "module"
 }
-```

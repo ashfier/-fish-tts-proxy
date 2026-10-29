@@ -1,7 +1,0 @@
-toml
-[build]
-  functions = "netlify/functions"
-
-[[functions]]
-  function = "api-tts"
-  path = "/api/tts"

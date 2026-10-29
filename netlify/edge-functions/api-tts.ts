@@ -1,13 +1,11 @@
-export const config = { path: '/api/tts' };
-
+```typescript
+// netlify/edge-functions/api-tts.ts
 const FISH_API_KEY = 'sk-fish-lVyNRIiKYWDiDKqkNxF1PPh5hj9Cp_mjHrV9C5H9I0I';
 const FISH_VOICE_ID = 'da6a6205c31d451fabb28c3d139adfa8';
 const FISH_MODEL = 's2.1-pro-free';
 
-export default async function handler(req: Request) {
+export default async function apiTts(req: Request) {
   const url = new URL(req.url);
-  if (url.pathname !== '/api/tts') return new Response('Not Found', { status: 404 });
-
   const text = url.searchParams.get('text');
   if (!text) return new Response('Missing text', { status: 400 });
   if (text.length > 500) return new Response('Too long', { status: 400 });
@@ -18,16 +16,28 @@ export default async function handler(req: Request) {
       headers: {
         'Authorization': `Bearer ${FISH_API_KEY}`,
         'Content-Type': 'application/json',
+        'model': FISH_MODEL,
       },
       body: JSON.stringify({
-        text, reference_id: FISH_VOICE_ID,
-        model: FISH_MODEL, format: 'mp3',
+        text,
+        reference_id: FISH_VOICE_ID,
+        model: FISH_MODEL,
+        format: 'mp3',
       }),
       signal: AbortSignal.timeout(10000),
     });
-    if (!resp.ok) return new Response('Fish failed: ' + resp.status, { status: 502 });
-    return new Response(resp.body, { headers: { 'Content-Type': 'audio/mpeg' } });
+
+    if (!resp.ok) {
+      const err = await resp.text();
+      console.error('Fish Audio error:', resp.status, err);
+      return new Response(`Fish failed: ${resp.status} ${err}`, { status: 502 });
+    }
+
+    return new Response(resp.body, {
+      headers: { 'Content-Type': 'audio/mpeg' },
+    });
   } catch (e) {
     return new Response('TTS error: ' + e.message, { status: 502 });
   }
 }
+```

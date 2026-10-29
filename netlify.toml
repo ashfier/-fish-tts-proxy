@@ -1,9 +1,0 @@
-```toml
-[build]
-  edge_functions = "netlify/edge-functions"
-  publish = "."
-
-[[edge_functions]]
-  function = "tts"
-  path = "/api/tts"
-```
